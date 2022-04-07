@@ -84,7 +84,7 @@ class Memory:
         self.save_memory()
 
     def recall(self, user_id):
-        if user_id not in self.memory:
+        if str(user_id) not in self.memory:
             return None
         return self.memory[user_id]
 
@@ -102,18 +102,24 @@ if __name__ == "__main__":
         sleep(1)
         update = bot.get_next_update()
         if 'message' in update:
-            chat_id = update['message']['chat']['id']
+            chat_id = str(update['message']['chat']['id'])
             first_name = update['message']['from']['first_name']
             text = update['message']['text']
             if text == '/start':
-                reply = 'Hello {}({})! I am an empty bot. I will do nothing'.format(first_name,chat_id)
+                reply = 'Hello {}({})! Type /help.'.format(first_name,chat_id)
             elif text == '/help':
                 reply = 'I will remember things when you say /remember <thing> and recall them when you say /recall'
             # if the text starts with /remember the save the rest of the string as a thing
             elif text.startswith('/remember'):
                 thing = text[10:]
-                reply = 'I will remember {}'.format(thing)
-                memory.remember(chat_id, thing)
+                # trim thing of leading and trailing whitespace
+                thing = thing.strip()
+                # if things is empty then prompt and continue
+                if thing == '':
+                    reply = 'What do you want me to remember? Say /remember <thing>'
+                else:
+                    reply = 'I will remember {}'.format(thing)
+                    memory.remember(chat_id, thing)
             # if the text starts with /recall the recall the thing
             elif text.startswith('/recall'):
                 things = memory.recall(chat_id)
